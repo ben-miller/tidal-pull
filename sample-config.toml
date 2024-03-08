@@ -1,0 +1,5 @@
+
+# Copy this file to tidal-config.toml and fill in the values
+client_id = ""
+client_secret = ""
+
