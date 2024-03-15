@@ -1,6 +1,4 @@
-import('dotenv').then((dotenv) => {
-  dotenv.config();
-});
+import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import axios from 'axios';
 import qs from 'qs';
@@ -9,6 +7,7 @@ import * as auth from './tidal-auth.js';
 
 console.log('Hello, world!')
 
+dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 const redirectUri = 'http://localhost:8080/oauth2/callback';
@@ -30,11 +29,6 @@ const loginUrl = await auth.initializeLogin({
     loginConfig: {},
     redirectUri,
 });
-
-await open(loginUrl);
-
-// Exit
-process.exit(0);
 
 app.get('/oauth2/callback', async (req: Request, res: Response) => {
     const { code, code_verifier } = req.query;
@@ -65,11 +59,15 @@ app.get('/oauth2/callback', async (req: Request, res: Response) => {
 
     // Redirect or respond after successful token acquisition
     res.redirect('/success-page');
+
+    process.exit(0);
 });
 
-app.get('/oauth2/callback2', async (req: Request, res: Response) => {
-    console.log('callback2');
-});
+//app.get('/oauth2/callback2', async (req: Request, res: Response) => {
+//    console.log('callback2');
+//});
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+await open(loginUrl);
 
