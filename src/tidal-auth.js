@@ -1,6 +1,16 @@
 
 // Script adapted from https://unpkg.com/@tidal-music/auth/dist
 
+import 'localstorage-polyfill';
+
+import fetch from 'node-fetch';
+
+globalThis.fetch = fetch;
+
+
+
+console.log("hi ", globalThis.localStorage);
+
 var u = Object.defineProperty;
 var n = (s2, t, r2) => t in s2 ? u(s2, t, { enumerable: true, configurable: true, writable: true, value: r2 }) : s2[t] = r2;
 var p = (s2, t, r2) => (n(s2, typeof t != "symbol" ? t + "" : t, r2), r2);
@@ -467,7 +477,8 @@ const dispatchEvent = (detail) => {
   const event = new CustomEvent("authEventBus", {
     detail
   });
-  globalThis.dispatchEvent(event);
+  // Leaving this out for NodeJS implementation.
+  //globalThis.dispatchEvent(event);
 };
 const dispatchCredentialsUpdated = (credentials) => {
   dispatchEvent({
