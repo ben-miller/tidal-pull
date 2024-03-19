@@ -541,7 +541,7 @@ const initializeLogin = async ({
     scope: state.credentials.scopes.join(" ")
   };
   const queryParameters = new URLSearchParams(queryData).toString();
-  return `${state.credentials.tidalLoginServiceBaseUri}authorize?${queryParameters}`;
+  return { authorizeUrl: `${state.credentials.tidalLoginServiceBaseUri}authorize?${queryParameters}`, codeChallenge };
 };
 const initializeDeviceLogin = async () => {
   if (!state.credentials) {
