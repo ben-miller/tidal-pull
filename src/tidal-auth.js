@@ -608,6 +608,7 @@ const finalizeLogin = async (loginResponseQuery) => {
     throw response;
   }
   const jsonResponse = await response.json();
+  console.log("response", jsonResponse);
   await persistToken(jsonResponse);
   return;
 };

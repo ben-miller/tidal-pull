@@ -54,29 +54,14 @@ app.get('/oauth2/callback', async (req: Request, res: Response) => {
 
     // Step 7: App presents auth code to Tidal's token endpoint to get an access token.
     console.log('Step 7: Request access token');
-    const tokenResponse = await axios.post('https://auth.tidal.com/v1/oauth2/token', 
-        qs.stringify({
-            client_id: process.env.TIDAL_CLIENT_ID,
-            client_unique_key: 'foo',
-            client_secret: process.env.TIDAL_CLIENT_SECRET,
-            code: code,
-            code_verifier: codeChallenge,
-            grant_type: 'authorization_code',
-            redirect_uri: 'http://localhost:8080/oauth2/callback2',
-            scope: scopes.join(' '),
-        }), {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        }
-    );
+    await auth.finalizeLogin("?code=" + code + "&code_verifier=" + code_verifier);
 
-    const accessToken = tokenResponse.data.access_token;
+    //const accessToken = tokenResponse.data.access_token;
     // Use the access token as needed
 
     // Redirect or respond after successful token acquisition
     // Step 8: Tidal service issues an access token.
-    console.log('Step 8: Request resource using access token:', accessToken);
+    //console.log('Step 8: Request resource using access token:', accessToken);
 
     process.exit(0);
 });
