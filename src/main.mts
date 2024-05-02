@@ -11,7 +11,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 const redirectUri = 'http://localhost:8080/oauth2/callback';
-const scopes = ['collection.read', 'playlists.read'];
+const scopes = ['collection.read', 'playlists.read', 'collection.write', 'playlists.write'];
 const clientId = process.env.TIDAL_CLIENT_ID;
 const clientSecret = process.env.TIDAL_CLIENT_SECRET;
 
@@ -56,12 +56,36 @@ app.get('/oauth2/callback', async (req: Request, res: Response) => {
     console.log('Step 7: Request access token');
     await auth.finalizeLogin("?code=" + code + "&code_verifier=" + code_verifier);
 
+    // Get credentials
+    const credentials = await auth.credentialsProvider.getCredentials();
+    console.log(credentials);
+
     //const accessToken = tokenResponse.data.access_token;
     // Use the access token as needed
+    
+    // Sleep for a bit
+    await new Promise(resolve => setTimeout(resolve, Math.random() * (4000 - 2000) + 2000));
 
     // Redirect or respond after successful token acquisition
     // Step 8: Tidal service issues an access token.
-    //console.log('Step 8: Request resource using access token:', accessToken);
+    console.log('Step 8: Request resource using access token:', credentials.token);
+    await axios.get('https://listen.tidal.com/v2/my-collection', {
+        headers: {
+            Accept: 'application/json',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'en-US,en;q=0.5',
+            authorization: `Bearer ${credentials.token}`,
+            Host: 'listen.tidal.com',
+            Origin: 'http://listen.tidal.com',
+            Referer: 'http://listen.tidal.com/'
+        }
+    }).then((response) => {
+        console.log('Response:', response.data);
+        res.send('Success');
+    }).catch((err) => {
+        console.error('Error:', err);
+        res.status(500).send('Error');
+    });
 
     process.exit(0);
 });

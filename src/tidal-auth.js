@@ -496,6 +496,7 @@ const init = async ({
   tidalLoginServiceBaseUri
 }) => {
   const persistedCredentials = await loadCredentials(credentialsStorageKey);
+    console.log('init, persistedCredentials', persistedCredentials);
   const credentials = {
     ...persistedCredentials,
     clientId,
@@ -702,6 +703,7 @@ const refreshAccessToken = async () => {
   }
 };
 const upgradeToken = async () => {
+    console.log('upgradeToken', 0);
   var _a;
   if ((_a = state.credentials) == null ? void 0 : _a.refreshToken) {
     const body = {
@@ -713,25 +715,33 @@ const upgradeToken = async () => {
       refresh_token: state.credentials.refreshToken,
       scope: state.credentials.scopes.join(" ")
     };
+    console.log('upgradeToken', 1);
     const { options, url } = prepareFetch({
       body,
       credentials: state.credentials,
       path: "oauth2/token"
     });
+    console.log('upgradeToken', 2);
+    console.log('upgradeToken; url:', url);
+    console.log('upgradeToken; options:', options);
     const response = await exponentialBackoff({
       request: () => globalThis.fetch(url, options),
       // only retry in certain error cases
       retry: (res) => res.status >= 400 && res.status < 600
     });
     if (!response.ok) {
+        console.log('upgradeToken bad response:', response);
       if (response.status === 0) {
         throw new a$1(authErrorCodeMap.networkError);
       }
       throw new o(authErrorCodeMap.retryableError);
     }
+    console.log('upgradeToken', 3);
     const jsonResponse = await response.json();
+    console.log('upgradeToken', 4);
     return persistToken(jsonResponse);
   } else {
+    console.log('upgradeToken', 5);
     return getTokenThroughClientCredentials();
   }
 };
@@ -756,25 +766,37 @@ const getTokenThroughClientCredentials = async () => {
   }
 };
 const getCredentials = async (apiErrorSubStatus) => {
+    console.log(0);
+    console.log('pending:', state.pending);
+    console.log('pending promises:', state.pendingPromises);
   if (state.pending) {
+    console.log(1);
     await new Promise((resolve) => {
+    console.log(2);
       state.pendingPromises.push(resolve);
+    console.log(3);
     });
   }
   return getCredentialsInternal(apiErrorSubStatus).finally(() => {
+    console.log(4);
     const resolve = state.pendingPromises.shift();
     if (resolve) {
       resolve();
     }
+    console.log(5);
     state.pending = false;
+    console.log(6);
   });
+    console.log(7);
 };
 const getCredentialsInternal = async (apiErrorSubStatus) => {
   if (state.credentials) {
+      console.log(8);
     state.pending = true;
     const { accessToken } = state.credentials;
     const oneMinute = 60 * 1e3;
     if (accessToken) {
+      console.log(9);
       const newScopeIsSameOrSubset = state.credentials.scopes.every(
         (scope) => {
           var _a;
@@ -785,8 +807,11 @@ const getCredentialsInternal = async (apiErrorSubStatus) => {
         logout();
         throw new c$1(authErrorCodeMap.illegalArgumentError);
       }
+      console.log('state:', state.credentials.clientId, accessToken == null ? void 0 : accessToken.clientId, state.credentials.previousClientSecret, state.credentials.clientSecret);
       const shouldUpgradeToken = state.credentials.clientId !== (accessToken == null ? void 0 : accessToken.clientId) || state.credentials.previousClientSecret !== state.credentials.clientSecret;
-      if (shouldUpgradeToken) {
+      console.log(10);
+      if (false && shouldUpgradeToken) {
+      console.log(11);
         const upgradeTokenResponse = await upgradeToken();
         if (upgradeTokenResponse && "token" in upgradeTokenResponse) {
           return upgradeTokenResponse;
@@ -794,6 +819,7 @@ const getCredentialsInternal = async (apiErrorSubStatus) => {
           throw new o(authErrorCodeMap.retryableError);
         }
       }
+      console.log(11);
       const shouldRefresh = Boolean(
         apiErrorSubStatus && knownSubStatus.includes(apiErrorSubStatus)
       );
@@ -804,6 +830,7 @@ const getCredentialsInternal = async (apiErrorSubStatus) => {
       if (accessTokenResponse && "token" in accessTokenResponse) {
         return accessTokenResponse;
       }
+      console.log(12);
       if (accessTokenResponse instanceof UnexpectedError) {
         logout();
         throw accessTokenResponse;
@@ -812,6 +839,7 @@ const getCredentialsInternal = async (apiErrorSubStatus) => {
         throw accessTokenResponse;
       }
     } else if (state.credentials.clientSecret) {
+      console.log(13);
       const accessTokenResponse = await getTokenThroughClientCredentials();
       if (accessTokenResponse && "token" in accessTokenResponse) {
         return accessTokenResponse;
@@ -819,12 +847,14 @@ const getCredentialsInternal = async (apiErrorSubStatus) => {
         throw accessTokenResponse;
       }
     } else {
+      console.log(14);
       return {
         clientId: state.credentials.clientId,
         requestedScopes: state.credentials.scopes
       };
     }
   }
+      console.log(15);
   throw new e(authErrorCodeMap.initError);
 };
 const setCredentials = async ({
